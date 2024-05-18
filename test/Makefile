@@ -3,10 +3,9 @@
 
 # defaults
 SIM ?= icarus
-# SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = tt_rtmc_pkg.sv tt_rtmc_interfaces.sv tt_rtmc_jrpetrus_top.sv tt_rtmc_spi_rxtx.sv tt_rtmc_spi.sv tt_rtmc_core.sv
+PROJECT_SOURCES = rtmc_pkg.sv rtmc_interfaces.sv tt_um_rtmc_top_jrpetrus.sv rtmc_spi_rxtx.sv rtmc_spi.sv rtmc_core.sv
 
 ifneq ($(GATES),yes)
 
@@ -37,11 +36,11 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 endif
 
 # Include the testbench sources:
-VERILOG_SOURCES += $(PWD)/tb.sv 
-TOPLEVEL = tb
+VERILOG_SOURCES += $(PWD)/rtmc_tb.sv 
+TOPLEVEL = rtmc_tb
 
 # MODULE is the basename of the Python test file
-MODULE = test
+MODULE = rtmc_tests
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim

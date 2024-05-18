@@ -1,53 +1,58 @@
 # Tiny Tapeout project information
 project:
-  title:        ""      # Project title
-  author:       ""      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  ""      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
+  title:        "Real Time Motor Controller"
+  author:       "J. R. Petrus"
+  discord:      ""  # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
+  description:  "Controls a stepper motor with precise timing between steps."
+  language:     "SystemVerilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
+  clock_hz:     50000000        # Clock frequency in Hz (or 0 if not applicable)
 
   # How many tiles your design occupies? A single tile is about 167x108 uM.
   tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
 
   # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
+  top_module:  "tt_um_rtmc_top_jrpetrus"
   
   # List your project's source files here. Source files must be in ./src and you must list each source file separately, one per line:
   source_files:        
-    - "project.v"
+    - "rtmc_pkg.sv"
+    - "rtmc_interfaces.sv"
+    - "tt_um_rtmc_top_jrpetrus.sv"
+    - "rtmc_core.sv"
+    - "rtmc_spi.sv"
+    - "rtmc_spi_rxtx.sv"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
   # Inputs
-  ui[0]: ""
-  ui[1]: ""
-  ui[2]: ""
-  ui[3]: ""
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: ""
-  ui[7]: ""
+  ui[0]: "General Purpose Input gpi[0]"
+  ui[1]: "General Purpose Input gpi[1]"
+  ui[2]: "General Purpose Input gpi[2]"
+  ui[3]: "General Purpose Input gpi[3]"
+  ui[4]: "General Purpose Input gpi[4]"
+  ui[5]: "SPI Clock sck"
+  ui[6]: "SPI Chip Select cs_n"
+  ui[7]: "SPI Shift Data In sdi"
 
   # Outputs
-  uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
-  uo[3]: ""
-  uo[4]: ""
-  uo[5]: ""
-  uo[6]: ""
-  uo[7]: ""
+  uo[0]: "General Purpose Output gpo[0]"
+  uo[1]: "General Purpose Output gpo[1]"
+  uo[2]: "General Purpose Output gpo[2]"
+  uo[3]: "General Purpose Output gpo[3]"
+  uo[4]: "General Purpose Output gpo[4]"
+  uo[5]: "General Purpose Output gpo[5]"
+  uo[6]: "General Purpose Output gpo[6]"
+  uo[7]: "SPI Shift Data Out sdo"
 
   # Bidirectional pins
-  uio[0]: ""
-  uio[1]: ""
-  uio[2]: ""
-  uio[3]: ""
-  uio[4]: ""
-  uio[5]: ""
-  uio[6]: ""
-  uio[7]: ""
+  uio[0]: "Motor Control mc[0]"
+  uio[1]: "Motor Control mc[1]"
+  uio[2]: "Motor Control mc[2]"
+  uio[3]: "Motor Control mc[3]"
+  uio[4]: "Motor Control mc[4]"
+  uio[5]: "Motor Control mc[5]"
+  uio[6]: "Motor Control mc[6]"
+  uio[7]: "Motor Control mc[7]"
 
 # Do not change!
 yaml_version: 6
