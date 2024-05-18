@@ -20,6 +20,11 @@ SPI_CLK_PERIOD_NS = SYS_CLK_PERIOD_NS * 2
 SPI_CLK_FREQ_HZ =  1e9 / SPI_CLK_PERIOD_NS
 ENA_BIT = 13
 
+# Motor controller
+# Each motor state is programmed into the table.
+MC_TABLE_SIZE = 16
+MC_OUT_WIDTH = 8
+
 
 class Op(enum.IntEnum):
     NOP = 0
@@ -32,6 +37,66 @@ class Result(enum.IntEnum):
     ACK = 0x1
     ACK_DATA = 0x2
     ERROR = 0xFF
+
+
+REG_MAP = {
+    "id": 0,
+    "gpi": 1,
+    "gpo": 2,
+    "mc_oe": 3,
+    "step_delay0": 4,
+    "step_delay1": 5,
+    "step_ctrl": 6,
+    "step_go": 7,
+    "step_count0": 8,
+    "step_count1": 9,
+    "delay_count0": 10,
+    "delay_count1": 11,
+    "mc_idx": 12,
+    "reserved13": 13,
+    "reserved14": 14,
+    "reserved15": 15,
+    "mc": 16,
+}
+
+# reg_name: field_name: (bit_offset, n_bits)
+BIT_MAP = {
+    "gpi": {
+        "gpi": (0, 5),
+        "mc_in": (5, 8),
+        "ena": (13, 1)
+    },
+    "gpo": {
+        "gpo": (0, 7)
+    },
+    "step_ctrl": {
+        "step_size": (0, 3),
+        "step_dir": (3, 1),
+    },
+    "step_go": {
+        "step": (0, 1),
+        "run": (1, 1),
+    },
+    "mc_idx": {
+        "mc_idx": (0, 4),
+    },
+    "mc": {
+        "mc": (0, 8)
+    }
+}
+
+
+def get_field_info(name: str, field: str) -> tuple[int, int, int]:
+    bit_offset = 0
+    bit_width = DATA_W
+    if field is not None:
+        try:
+            bit_offset, bit_width = BIT_MAP[name][field]
+        except KeyError:
+            # Use default full width if not specified
+            pass
+    bit_mask = (1 << bit_width) - 1
+    return bit_offset, bit_width, bit_mask
 
 
 class Testbench:
@@ -69,25 +134,29 @@ class Testbench:
         # Initialize inputs.
         self.dut.gpio.gpi.value = 0
         await Timer(SYS_CLK_PERIOD_NS // 2, "ns")
+        Testbench.set_packed_bit(self.dut.gpio.gpi, ENA_BIT, 1)
 
-        # Reset
-        Testbench.set_bit(self.dut.gpio.gpi, ENA_BIT, 1)
+        # Reset.
         self.dut.rst_n.value = 0
         await ClockCycles(self.dut.clk, 10)
         self.dut.rst_n.value = 1
+        await ClockCycles(self.dut.clk, 10)
 
     @staticmethod
-    def set_bit(signal: cocotb.handle.ModifiableObject, bit_idx: int, bit_val: int) -> None:
+    def set_packed_bit(signal: cocotb.handle.ModifiableObject, bit_idx: int, bit_val: int) -> None:
         val = int(signal.value)
         val |= (bit_val & 0x1) << bit_idx
         signal.value = val
 
     @staticmethod
-    def get_bit(signal: cocotb.handle.ModifiableObject, idx: int) -> int:
+    def get_packed_bit(signal: cocotb.handle.ModifiableObject, idx: int) -> int:
         return (int(signal.value) >> idx) & 0x1
 
-    async def write(self, addr: int, val: int, timeout=64) -> None:
+    async def write(self, addr: int | str, val: int, timeout=64) -> None:
         """SPI write."""
+        if isinstance(addr, str):
+            addr = REG_MAP[addr]
+
         # Send the write command.
         txDat = int(Op.WR).to_bytes(1)
         txDat += (addr & ADDR_MASK).to_bytes(ADDR_W // 8, byteorder="big")
@@ -115,8 +184,11 @@ class Testbench:
 
         await self.spi.wait()
 
-    async def read(self, addr: int, timeout=64) -> int:
+    async def read(self, addr: int | str, timeout=64) -> int:
         """SPI read."""
+        if isinstance(addr, str):
+            addr = REG_MAP[addr]
+
         # Send the write command.
         txDat = int(Op.RD).to_bytes(1)
         txDat += (addr & ADDR_MASK).to_bytes(ADDR_W // 8, byteorder="big")
@@ -144,6 +216,30 @@ class Testbench:
         rxDat = await self.spi.read(len(txDat))
         await self.spi.wait()
         return int.from_bytes(rxDat, byteorder="big")
+    
+    async def write_reg(
+        self,
+        name: str,
+        field: str | None,
+        val: int,
+    ) -> None:
+        """Read-modify-write a register field."""
+        bit_offset, _, bit_mask = get_field_info(name, field)
+        reg_val = await self.read(name)
+        reg_val &= DATA_MASK ^ (bit_mask << bit_offset)
+        reg_val |= (val & bit_mask) << bit_offset
+        await self.write(name, reg_val)
+
+    async def read_reg(
+        self,
+        name: str,
+        field: str | None,
+    ) -> None:
+        """Read a register field."""
+        bit_offset, _, bit_mask = get_field_info(name, field)
+        val = await self.read(name)
+        return (val >> bit_offset) & bit_mask
+    
 
 async def make_tb(dut):
     tb = Testbench(dut)

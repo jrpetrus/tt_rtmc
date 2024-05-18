@@ -11,7 +11,6 @@ from rtmc_testbench import make_tb, DATA_W
 @cocotb.test()
 async def test_project(dut):
     tb = await make_tb(dut)
-    await ClockCycles(dut.clk, 10)
     tb.log.info("Starting test.")
 
     N_REGS = 32
