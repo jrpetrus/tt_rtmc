@@ -62,6 +62,9 @@ class Testbench:
         clock = Clock(dut.clk, SYS_CLK_PERIOD_NS, units="ns")
         cocotb.start_soon(clock.start())
 
+        # Hold current state of every register written by test case.
+        self.regfile = {}
+
     async def reset(self):
         # Initialize inputs.
         self.dut.gpio.gpi.value = 0
@@ -107,6 +110,9 @@ class Testbench:
         if result != Result.ACK:
             raise RuntimeError(f"SPI write bad result: {result}!")
         
+        # Uopdate register file.
+        self.regfile[addr] = val
+
         await self.spi.wait()
 
     async def read(self, addr: int, timeout=64) -> int:

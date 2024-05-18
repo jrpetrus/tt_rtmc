@@ -51,7 +51,7 @@ module rtmc_core(
     logic reg_rd;
     logic [DATA_W-1:0] reg_rdat;
     logic reg_ack;  
-    logic [DATA_W-1:0] regfile[0:2**ADDR_W-1];
+    logic [DATA_W-1:0] regfile[0:31];
 
     always_ff @(posedge clk or negedge sync_rst_n) begin
         if(!sync_rst_n) begin
@@ -59,10 +59,10 @@ module rtmc_core(
         end
         else begin
             if(reg_wr)
-                regfile[reg_addr] <= reg_wdat;
+                regfile[reg_addr[4:0]] <= reg_wdat;
 
             if(reg_rd) 
-                reg_rdat <= regfile[reg_addr];
+                reg_rdat <= regfile[reg_addr[4:0]];
 
             if(reg_wr || reg_rd) 
                 reg_ack <= ~reg_ack;
