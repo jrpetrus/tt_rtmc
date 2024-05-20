@@ -6,7 +6,6 @@
 import rtmc_pkg::*;
 
 module rtmc_core(
-    input  logic ena,
     input  logic clk,
     input  logic rst_n,
 
@@ -21,12 +20,20 @@ module rtmc_core(
     output logic [6:0] gpo,
 
     // Stepper motors.
-    output logic [7:0] mc,
-    output logic [7:0] mc_oe
+    output logic [MC_W-1:0] mc,
+    output logic [MC_W-1:0] mc_oe
 );
-    // Reset synchronization
+    // Reset synchronization.
     logic meta_rst_n;
     logic sync_rst_n;
+
+    // Register bus.
+    logic [ADDR_W-1:0] reg_addr;
+    logic [DATA_W-1:0] reg_wdat;
+    logic reg_wr;
+    logic reg_rd;
+    logic [DATA_W-1:0] reg_rdat;
+    logic reg_ack;
 
     always_ff @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
@@ -44,31 +51,9 @@ module rtmc_core(
         .*
     );
 
-    // Temporary Empty register bus.
-    logic [ADDR_W-1:0] reg_addr;
-    logic [DATA_W-1:0] reg_wdat;
-    logic reg_wr;
-    logic reg_rd;
-    logic [DATA_W-1:0] reg_rdat;
-    logic reg_ack;  
-    logic [DATA_W-1:0] regfile[0:31];
-
-    always_ff @(posedge clk or negedge sync_rst_n) begin
-        if(!sync_rst_n) begin
-            reg_ack <= '0;
-        end
-        else begin
-            if(reg_wr)
-                regfile[reg_addr[4:0]] <= reg_wdat;
-
-            if(reg_rd) 
-                reg_rdat <= regfile[reg_addr[4:0]];
-
-            if(reg_wr || reg_rd) 
-                reg_ack <= ~reg_ack;
-            else
-                reg_ack <= '0;
-        end 
-    end
+    rtmc_ctrl ctrl(
+        .rst_n(sync_rst_n),
+        .*
+    );
 
 endmodule

@@ -16,11 +16,11 @@ project:
   # List your project's source files here. Source files must be in ./src and you must list each source file separately, one per line:
   source_files:        
     - "rtmc_pkg.sv"
-    - "rtmc_interfaces.sv"
     - "tt_um_rtmc_top_jrpetrus.sv"
     - "rtmc_core.sv"
     - "rtmc_spi.sv"
     - "rtmc_spi_rxtx.sv"
+    - "rtmc_ctrl.sv"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:

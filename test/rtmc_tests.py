@@ -2,41 +2,57 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import cocotb
-from cocotb.triggers import ClockCycles, Timer
 import random
 
-from rtmc_testbench import make_tb, DATA_W
+import rtmc_common as rtmc_com
+import rtmc_testbench as rtmc_tb
 
 
 @cocotb.test()
-async def test_project(dut):
-    tb = await make_tb(dut)
+async def test_registers(dut):
+    """Test register write and read."""
+    tb = await rtmc_tb.make_tb(dut)
     tb.log.info("Starting test.")
 
-    N_REGS = 32
-    wr_regs = list(range(N_REGS))
-    rd_regs = list(range(N_REGS))
+    startAddr = rtmc_com.STEP_TABLE_OFFSET
+    endAddr = startAddr + rtmc_com.TABLE_DEPTH
+
+    wr_regs = list(range(startAddr, endAddr))
+    rd_regs = list(wr_regs)
 
     # Initialize all registers.
-    tb.log.info("Initializing all registers.")
+    tb.log.info("Initializing step_table.")
     for addr in wr_regs:
         await tb.write(addr, 0)
 
     # Randomly write each register in any order.
-    tb.log.info("Writing all registers.")
+    tb.log.info("Writing to step_table")
     while wr_regs:
         addr = random.choice(wr_regs)
         wr_regs.remove(addr)
-        wdat = random.randrange(1 << DATA_W)
+        wdat = random.randrange(1 << (rtmc_com.DATA_W // 2))
         await tb.write(addr, wdat)
 
     # Randomly read each register in any order.
-    tb.log.info("Reading and checking all registers.")
+    tb.log.info("Reading and checking step_table.")
     while rd_regs:
         addr = random.choice(rd_regs)
         rd_regs.remove(addr)
         rdat = await tb.read(addr)
         assert rdat == tb.regfile[addr], \
             tb.log.error(f"Reg[0x{addr:02X}] mismatch: wrote=0x{tb.regfile[addr]:02X}, read=0x{rdat:02X}!")
+        
+    # Read and print each register.
+    tb.log.info("Read and print all registers.")
+    for regName in rtmc_com.REG_MAP.keys():
+        regVal = await tb.read(regName)
+        tb.log.info(rtmc_com.get_reg_str(regName, regVal))
+
+    # Dump the step table.
+    tableStr = "Step Table Contents"
+    for i, addr in enumerate(range(startAddr, endAddr)):
+        tableVal = await tb.read(addr)
+        tableStr += f"\n\t[{i}] = 0b{tableVal:08b}"
+    tb.log.info(tableStr)
 
     tb.log.info("Test complete.")

@@ -5,7 +5,7 @@
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = rtmc_pkg.sv rtmc_interfaces.sv tt_um_rtmc_top_jrpetrus.sv rtmc_spi_rxtx.sv rtmc_spi.sv rtmc_core.sv
+PROJECT_SOURCES = rtmc_pkg.sv rtmc_interfaces.sv tt_um_rtmc_top_jrpetrus.sv rtmc_spi_rxtx.sv rtmc_spi.sv rtmc_core.sv rtmc_ctrl.sv
 
 ifneq ($(GATES),yes)
 
