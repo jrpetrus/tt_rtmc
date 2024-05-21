@@ -7,8 +7,8 @@
 
 package rtmc_pkg;
     // ID register contents.
-    parameter [7:0] VERSION = 'h01;
-    parameter [7:0] IDCODE = 'h42;  // "M" in UTF-8
+    parameter logic [7:0] VERSION = 'h01;
+    parameter logic [7:0] IDCODE = 'h42;  // "M" in UTF-8
 
     // Register bus.
     parameter ADDR_W = 8;
