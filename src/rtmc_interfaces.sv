@@ -8,8 +8,6 @@
 // made use of interfaces impossible. Struct support
 // was lacking, too.
 
-// synthesis translate_off
-
 import rtmc_pkg::*;
 
 interface spi_if();
@@ -77,5 +75,3 @@ interface reg_if #(
         output ack
     );
 endinterface
-
-// synthesis translate_on

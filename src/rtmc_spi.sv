@@ -5,9 +5,11 @@
 
 // SPI to Register bus controller.
 
-import rtmc_pkg::*;
-
-module rtmc_spi(
+module rtmc_spi #(
+    parameter ADDR_W = 8,
+    parameter DATA_W = 16
+)
+(
     // Core clock and reset
     input  logic clk,
     input  logic rst_n,
@@ -29,6 +31,15 @@ module rtmc_spi(
     // shift reg width
     localparam N_BITS = 8;
 
+    // SPI RW protocol.
+    localparam SPI_OP_RESULT_W = 8;
+    localparam logic [SPI_OP_RESULT_W-1:0] O_NOP = 8'h0;
+    localparam logic [SPI_OP_RESULT_W-1:0] O_RD = 8'h01;
+    localparam logic [SPI_OP_RESULT_W-1:0] O_WR = 8'h02;
+    localparam logic [SPI_OP_RESULT_W-1:0] R_BUSY = 8'h00;
+    localparam logic [SPI_OP_RESULT_W-1:0] R_ACK = 8'h01;
+    localparam logic [SPI_OP_RESULT_W-1:0] R_ACK_DATA = 8'h02;
+
     // max outstanding bytes to count or buffer
     localparam ADDR_BYTES = 1; 
     localparam DATA_BYTES = 2; 
@@ -44,7 +55,7 @@ module rtmc_spi(
     } state, next_state;
 
     // op and result bytes.
-    op_t op;
+    logic [SPI_OP_RESULT_W-1:0] op;
     logic [DATA_W-1:0] rdat;
 
     // byte counter
@@ -79,7 +90,7 @@ module rtmc_spi(
         next_state = state;
         case(state)
             IDLE: begin
-                if(din_valid && op_t'(din) !== O_NOP)
+                if(din_valid && din != O_NOP)
                     next_state = ADDR;
             end
 
@@ -126,8 +137,8 @@ module rtmc_spi(
             case(state)
                 IDLE: begin
                     // Wait for the OP byte.
-                    if(din_valid && op_t'(din) !== O_NOP) begin
-                        op <= op_t'(din);
+                    if(din_valid && din != O_NOP) begin
+                        op <= din;
                         byte_count <= 'd1;
                     end
                 end

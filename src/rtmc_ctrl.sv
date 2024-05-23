@@ -5,9 +5,13 @@
 
  // Motor Controller State machine + registers.
 
-import rtmc_pkg::*;
-
-module rtmc_ctrl(
+module rtmc_ctrl #(
+    parameter ADDR_W = 8,
+    parameter DATA_W = 16,
+    parameter MC_W = 8,
+    parameter MC_DEPTH = 16
+)
+(
     input  logic clk,
     input  logic rst_n,
 
@@ -27,6 +31,32 @@ module rtmc_ctrl(
     output logic [MC_W-1:0] mc,
     output logic [MC_W-1:0] mc_oe
 );
+    // Register offsets.
+    localparam ID_REG = 0;
+    localparam GPI_REG = 1;
+    localparam GPO_REG = 2;
+    localparam MC_OE_REG = 3;
+    localparam STEP_CTRL_REG = 4;
+    localparam STEP_STAT_REG = 5;
+    localparam STEP_DELAY_0_REG = 6;
+    localparam STEP_DELAY_1_REG = 7;
+    localparam STEP_COUNT_0_REG = 8;
+    localparam STEP_COUNT_1_REG = 9;
+    localparam DELAY_COUNT_0_REG = 10;
+    localparam DELAY_COUNT_1_REG = 11;
+    localparam STEP_LIMIT_POS_0_REG = 12;
+    localparam STEP_LIMIT_POS_1_REG = 13;
+    localparam STEP_LIMIT_NEG_0_REG = 14;
+    localparam STEP_LIMIT_NEG_1_REG = 15;
+
+    localparam TABLE_ADDR_BIT = 4;
+    typedef logic [TABLE_ADDR_BIT-1:0] register_address_t;
+    typedef logic [$clog2(MC_DEPTH)-1:0] table_address_t;
+
+    // ID register contents.
+    localparam logic [7:0] VERSION = 'h01;
+    localparam logic [7:0] IDCODE = 'h42;  // "M" in UTF-8
+
     // Addressing
     register_address_t register_address;
     table_address_t table_address;
@@ -279,7 +309,7 @@ module rtmc_ctrl(
         if(step_count_clr)
             next_step_count = '0;
         else if(step_delay_hit && !step_limit_hit) 
-            next_step_count = step_count + step_size;
+            next_step_count = step_count + {{$bits(step_count)-$bits(step_size){step_size[$left(step_size)]}}, step_size};
     end
 
     // Next table_idx logic.
@@ -296,11 +326,11 @@ module rtmc_ctrl(
             if(table_idx_p_step_size_ltz)
                 // table_idx can't be negative.
                 next_table_idx = table_last;
-            else if(table_idx_p_step_size >= table_last)
+            else if(table_idx_p_step_size >= {1'b0, table_last})
                 // table_idx can't exceed table_last.
                 next_table_idx = '0;
             else
-                next_table_idx = table_idx_p_step_size;
+                next_table_idx = table_idx_p_step_size[$left(next_table_idx):0];
         end
     end
 

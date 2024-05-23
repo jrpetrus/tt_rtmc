@@ -5,8 +5,6 @@
 
 `default_nettype none
 
-import rtmc_pkg::*;
-
 module tt_um_rtmc_top_jrpetrus (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
@@ -17,7 +15,6 @@ module tt_um_rtmc_top_jrpetrus (
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
 );
-
     // ----------------------------------
     // Pin Mapping
     // ----------------------------------

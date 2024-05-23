@@ -3,9 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import rtmc_pkg::*;
-
-module rtmc_core(
+module rtmc_core #(
+    parameter ADDR_W = 8,
+    parameter DATA_W = 16,
+    parameter MC_W = 8
+)
+(
     input  logic clk,
     input  logic rst_n,
 

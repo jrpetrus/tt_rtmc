@@ -15,7 +15,6 @@ project:
   
   # List your project's source files here. Source files must be in ./src and you must list each source file separately, one per line:
   source_files:        
-    - "rtmc_pkg.sv"
     - "tt_um_rtmc_top_jrpetrus.sv"
     - "rtmc_core.sv"
     - "rtmc_spi.sv"
