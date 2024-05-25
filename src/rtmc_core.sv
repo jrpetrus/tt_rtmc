@@ -6,7 +6,7 @@
 module rtmc_core #(
     parameter ADDR_W = 8,
     parameter DATA_W = 16,
-    parameter MC_W = 8
+    parameter MC_W = 4
 )
 (
     input  logic clk,
@@ -19,8 +19,8 @@ module rtmc_core #(
     output logic sdo,
 
     // GPIO.
-    input  logic [13:0] gpi,
-    output logic [6:0] gpo,
+    input  logic [3:0] gpi,
+    output logic [3:0] gpo,
 
     // Stepper motors.
     output logic [MC_W-1:0] mc,

@@ -30,7 +30,7 @@ async def test_registers(dut):
     while wr_regs:
         addr = random.choice(wr_regs)
         wr_regs.remove(addr)
-        wdat = random.randrange(1 << (rtmc_com.DATA_W // 2))
+        wdat = random.randrange(1 << (rtmc_com.MC_OUT_WIDTH))
         await tb.write(addr, wdat)
 
     # Randomly read each register in any order.

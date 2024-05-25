@@ -17,8 +17,8 @@ ENA_BIT = 13
 # Motor controller
 # Each motor state is programmed into the table.
 STEP_TABLE_OFFSET = 16
-TABLE_DEPTH = 16
-MC_OUT_WIDTH = 8
+TABLE_DEPTH = 8
+MC_OUT_WIDTH = 4
 
 
 class Op(enum.IntEnum):
@@ -46,10 +46,6 @@ REG_MAP = {
     "step_count1": 9,
     "delay_count0": 10,
     "delay_count1": 11,
-    "step_limit_pos0": 12,
-    "step_limit_pos1": 13,
-    "step_limit_neg0": 14,
-    "step_limit_neg1": 15,
 }
 
 # reg_name: field_name: (bit_offset, n_bits)

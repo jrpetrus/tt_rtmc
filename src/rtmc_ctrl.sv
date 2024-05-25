@@ -8,8 +8,8 @@
 module rtmc_ctrl #(
     parameter ADDR_W = 8,
     parameter DATA_W = 16,
-    parameter MC_W = 8,
-    parameter MC_DEPTH = 16
+    parameter MC_W = 4,
+    parameter MC_DEPTH = 8
 )
 (
     input  logic clk,
@@ -24,8 +24,8 @@ module rtmc_ctrl #(
     output logic reg_ack,
 
     // GPIO.
-    input  logic [13:0] gpi,
-    output logic [6:0] gpo,
+    input  logic [3:0] gpi,
+    output logic [3:0] gpo,
 
     // Stepper motors.
     output logic [MC_W-1:0] mc,
@@ -44,10 +44,6 @@ module rtmc_ctrl #(
     localparam STEP_COUNT_1_REG = 9;
     localparam DELAY_COUNT_0_REG = 10;
     localparam DELAY_COUNT_1_REG = 11;
-    localparam STEP_LIMIT_POS_0_REG = 12;
-    localparam STEP_LIMIT_POS_1_REG = 13;
-    localparam STEP_LIMIT_NEG_0_REG = 14;
-    localparam STEP_LIMIT_NEG_1_REG = 15;
 
     localparam TABLE_ADDR_BIT = 4;
     typedef logic [TABLE_ADDR_BIT-1:0] register_address_t;
@@ -69,8 +65,6 @@ module rtmc_ctrl #(
 
     // Step Counter.
     logic signed [2*DATA_W-1:0] step_count, next_step_count;
-    logic signed [2*DATA_W-1:0] step_limit_pos, step_limit_neg;
-    logic step_limit_hit;
     logic step_count_clr;
     
     // Motor Control Table indexing.
@@ -104,8 +98,6 @@ module rtmc_ctrl #(
             do_run <= '0;
             step_count_clr <= '0;
             delay_count_clr <= '0;
-            step_limit_pos <= 2**(2*DATA_W-1) - 1;
-            step_limit_neg <= -2**(2*DATA_W-1);
             mc_oe <= '0;
         end
         else begin
@@ -155,18 +147,6 @@ module rtmc_ctrl #(
                         DELAY_COUNT_1_REG: begin
                             delay_count_clr <= '1;
                         end
-                        STEP_LIMIT_POS_0_REG: begin
-                            step_limit_pos[2*DATA_W-1:DATA_W] <= reg_wdat;
-                        end
-                        STEP_LIMIT_POS_1_REG: begin
-                            step_limit_pos[DATA_W-1:0] <= reg_wdat;
-                        end
-                        STEP_LIMIT_NEG_0_REG: begin
-                            step_limit_neg[2*DATA_W-1:DATA_W] <= reg_wdat;
-                        end
-                        STEP_LIMIT_NEG_1_REG: begin
-                            step_limit_neg[DATA_W-1:0] <= reg_wdat;
-                        end
                         default: begin
                             // pass
                         end
@@ -199,7 +179,6 @@ module rtmc_ctrl #(
                             reg_rdat[$bits(table_last)+$bits(step_size)-1:0] <= {table_last, step_size};
                         end
                         STEP_STAT_REG: begin
-                            reg_rdat[8] <= step_limit_hit;
                             reg_rdat[$bits(state)+$bits(table_idx)-1:0] <= {state, table_idx};
                         end
                         STEP_DELAY_0_REG: begin
@@ -219,18 +198,6 @@ module rtmc_ctrl #(
                         end
                         DELAY_COUNT_1_REG: begin
                             reg_rdat <= delay_count[DATA_W-1:0];
-                        end
-                        STEP_LIMIT_POS_0_REG: begin
-                            reg_rdat <= step_limit_pos[2*DATA_W-1:DATA_W];
-                        end
-                        STEP_LIMIT_POS_1_REG: begin
-                            reg_rdat <= step_limit_pos[DATA_W-1:0];
-                        end
-                        STEP_LIMIT_NEG_0_REG: begin
-                            reg_rdat <= step_limit_neg[2*DATA_W-1:DATA_W];
-                        end
-                        STEP_LIMIT_NEG_1_REG: begin
-                            reg_rdat <= step_limit_neg[DATA_W-1:0];
                         end
                         default: begin
                             // error, unrecognized address
@@ -257,11 +224,11 @@ module rtmc_ctrl #(
         next_state = state;
         case(state)
             IDLE: begin
-                if(do_run && !step_limit_hit)
+                if(do_run)
                     next_state = RUN;
             end
             RUN: begin
-                if(do_run & !step_limit_hit)
+                if(do_run)
                     next_state = RUN;
                 else
                     next_state = IDLE;
@@ -294,22 +261,13 @@ module rtmc_ctrl #(
     // Tracks the total steps in either + or - direction.
     // This is a SIGNED value that gives the user an indication
     // of position if controlling something that moves.
-    // MC_STEP_LIM_POS and MC_STEP_LIM_NEG registers set limits
-    // for the the + and - directions.
-    // So you don't hit something.
-    // You're welcome.
-    // step_count_clr is for if you hit something anyway and some
-    // manual intervention occured.
     always_comb begin
         next_step_count = step_count;
-        step_limit_hit = 
-            (step_count >= step_limit_pos) || 
-            (step_count <= step_limit_neg);
-
         if(step_count_clr)
             next_step_count = '0;
-        else if(step_delay_hit && !step_limit_hit) 
-            next_step_count = step_count + {{$bits(step_count)-$bits(step_size){step_size[$left(step_size)]}}, step_size};
+        else if(step_delay_hit) 
+            next_step_count =
+                step_count + {{$bits(step_count)-$bits(step_size){step_size[$left(step_size)]}}, step_size};
     end
 
     // Next table_idx logic.

@@ -33,10 +33,15 @@ module rtmc_spi #(
 
     // SPI RW protocol.
     localparam SPI_OP_RESULT_W = 8;
+    
+    // Op codes
     localparam logic [SPI_OP_RESULT_W-1:0] O_NOP = 8'h0;
     localparam logic [SPI_OP_RESULT_W-1:0] O_RD = 8'h01;
     localparam logic [SPI_OP_RESULT_W-1:0] O_WR = 8'h02;
-    localparam logic [SPI_OP_RESULT_W-1:0] R_BUSY = 8'h00;
+
+    // Result codes. R_BUSY currently not used as low-level
+    // spi_rxtx will output a zero if no data available.
+    // localparam logic [SPI_OP_RESULT_W-1:0] R_BUSY = 8'h00;
     localparam logic [SPI_OP_RESULT_W-1:0] R_ACK = 8'h01;
     localparam logic [SPI_OP_RESULT_W-1:0] R_ACK_DATA = 8'h02;
 
