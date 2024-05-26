@@ -8,8 +8,8 @@
 module rtmc_ctrl #(
     parameter ADDR_W = 8,
     parameter DATA_W = 16,
-    parameter MC_W = 4,
-    parameter MC_DEPTH = 8
+    parameter MC_W = 8,
+    parameter MC_DEPTH = 16
 )
 (
     input  logic clk,
@@ -33,17 +33,15 @@ module rtmc_ctrl #(
 );
     // Register offsets.
     localparam ID_REG = 0;
-    localparam GPI_REG = 1;
-    localparam GPO_REG = 2;
-    localparam MC_OE_REG = 3;
-    localparam STEP_CTRL_REG = 4;
-    localparam STEP_STAT_REG = 5;
-    localparam STEP_DELAY_0_REG = 6;
-    localparam STEP_DELAY_1_REG = 7;
-    localparam STEP_COUNT_0_REG = 8;
-    localparam STEP_COUNT_1_REG = 9;
-    localparam DELAY_COUNT_0_REG = 10;
-    localparam DELAY_COUNT_1_REG = 11;
+    localparam GPIO_REG = 1;
+    localparam STEP_CTRL_REG = 2;
+    localparam STEP_STAT_REG = 3;
+    localparam STEP_DELAY_0_REG = 4;
+    localparam STEP_DELAY_1_REG = 5;
+    localparam STEP_COUNT_0_REG = 6;
+    localparam STEP_COUNT_1_REG = 7;
+    localparam DELAY_COUNT_0_REG = 8;
+    localparam DELAY_COUNT_1_REG = 9;
 
     localparam TABLE_ADDR_BIT = 4;
     typedef logic [TABLE_ADDR_BIT-1:0] register_address_t;
@@ -118,12 +116,9 @@ module rtmc_ctrl #(
                 end
                 else begin
                     case(register_address)
-                        GPO_REG: begin
-                            gpo <= reg_wdat[$left(gpo):0];
+                        GPIO_REG: begin
+                            {mc_oe, gpo} <= reg_wdat[$bits(mc_oe)+$bits(gpo)+$bits(gpi)-1:$bits(gpi)];
                         end
-                        MC_OE_REG: begin
-                            mc_oe <= reg_wdat[$left(mc_oe):0];
-                        end 
                         STEP_CTRL_REG: begin
                             do_run <= reg_wdat[15];
                             do_step <= reg_wdat[14] & ~reg_wdat[15] & ~do_run;
@@ -164,14 +159,9 @@ module rtmc_ctrl #(
                         ID_REG: begin
                             reg_rdat <= {VERSION, IDCODE};
                         end
-                        GPI_REG: begin
+                        GPIO_REG: begin
+                            reg_rdat[$bits(mc_oe)+$bits(gpo)+$bits(gpi)-1:0] <= {mc_oe, gpo, gpi};
                             reg_rdat[$left(gpi):0] <= gpi;
-                        end
-                        GPO_REG: begin
-                            reg_rdat[$left(gpo):0] <= gpo;
-                        end
-                        MC_OE_REG: begin
-                            reg_rdat[$left(mc_oe):0] <= mc_oe;
                         end
                         STEP_CTRL_REG: begin
                             reg_rdat[15] <= do_run;

@@ -6,7 +6,7 @@
 module rtmc_core #(
     parameter ADDR_W = 8,
     parameter DATA_W = 16,
-    parameter MC_W = 4
+    parameter MC_W = 8
 )
 (
     input  logic clk,
@@ -49,12 +49,21 @@ module rtmc_core #(
         end;
     end
 
-    rtmc_spi spi(
+    rtmc_spi #(
+        .ADDR_W(ADDR_W),
+        .DATA_W(DATA_W)
+    )
+    spi(
         .rst_n(sync_rst_n),
         .*
     );
 
-    rtmc_ctrl ctrl(
+    rtmc_ctrl #(
+        .ADDR_W(ADDR_W),
+        .DATA_W(DATA_W),
+        .MC_W(MC_W)
+    )
+    ctrl(
         .rst_n(sync_rst_n),
         .*
     );

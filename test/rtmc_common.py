@@ -10,15 +10,13 @@ ADDR_MASK = (1 << ADDR_W) - 1
 DATA_MASK = (1 << DATA_W) - 1
 
 SYS_CLK_PERIOD_NS = 20
-SPI_CLK_PERIOD_NS = SYS_CLK_PERIOD_NS * 2
-SPI_CLK_FREQ_HZ =  1e9 / SPI_CLK_PERIOD_NS
 ENA_BIT = 13
 
 # Motor controller
 # Each motor state is programmed into the table.
 STEP_TABLE_OFFSET = 16
-TABLE_DEPTH = 8
-MC_OUT_WIDTH = 4
+TABLE_DEPTH = 16
+MC_OUT_WIDTH = 8
 
 
 class Op(enum.IntEnum):
@@ -35,17 +33,15 @@ class Result(enum.IntEnum):
 
 REG_MAP = {
     "id": 0,
-    "gpi": 1,
-    "gpo": 2,
-    "mc_oe": 3,
-    "step_ctrl": 4,
-    "step_stat": 5,
-    "step_delay0": 6,
-    "step_delay1": 7,
-    "step_count0": 8,
-    "step_count1": 9,
-    "delay_count0": 10,
-    "delay_count1": 11,
+    "gpio": 1,
+    "step_ctrl": 2,
+    "step_stat": 3,
+    "step_delay0": 4,
+    "step_delay1": 5,
+    "step_count0": 6,
+    "step_count1": 7,
+    "delay_count0": 8,
+    "delay_count1": 9,
 }
 
 # reg_name: field_name: (bit_offset, n_bits)
@@ -54,16 +50,10 @@ BIT_MAP = {
         "idcode": (0, 8),
         "version": (8, 8),
     },
-    "gpi": {
-        "gpi": (0, 5),
-        "mc_in": (5, 8),
-        "ena": (13, 1)
-    },
-    "gpo": {
-        "gpo": (0, 7)
-    },
-    "mc_oe": {
-        "mc_oe": (0, 8),
+    "gpio": {
+        "gpi": (0, 4),
+        "gpo": (4, 4),
+        "mc_oe": (8, MC_OUT_WIDTH),
     },
     "step_ctrl": {
         "step_size": (0, 5),

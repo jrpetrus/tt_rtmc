@@ -38,8 +38,8 @@ interface gpio_if();
 endinterface
 
 interface motor_if();
-    logic [7:0] mc;
-    logic [7:0] mc_oe;
+    logic [MC_W-1:0] mc;
+    logic [MC_W-1:0] mc_oe;
 
     modport controller(
         output mc, mc_oe

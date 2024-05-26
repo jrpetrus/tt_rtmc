@@ -8,7 +8,7 @@ project:
   clock_hz:     50000000        # Clock frequency in Hz (or 0 if not applicable)
 
   # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
+  tiles: "1x2"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
 
   # Your top module name must start with "tt_um_". Make it unique by including your github username:
   top_module:  "tt_um_rtmc_top_jrpetrus"
@@ -28,7 +28,7 @@ pinout:
   ui[1]: "General Purpose Input gpi[1]"
   ui[2]: "General Purpose Input gpi[2]"
   ui[3]: "General Purpose Input gpi[3]"
-  ui[4]: "General Purpose Input gpi[4]"
+  ui[4]: "Connected to uo_out[5]"
   ui[5]: "SPI Clock sck"
   ui[6]: "SPI Chip Select cs_n"
   ui[7]: "SPI Shift Data In sdi"
@@ -38,9 +38,9 @@ pinout:
   uo[1]: "General Purpose Output gpo[1]"
   uo[2]: "General Purpose Output gpo[2]"
   uo[3]: "General Purpose Output gpo[3]"
-  uo[4]: "General Purpose Output gpo[4]"
-  uo[5]: "General Purpose Output gpo[5]"
-  uo[6]: "General Purpose Output gpo[6]"
+  uo[4]: "Connected to ^uio_in"
+  uo[5]: "Connected to uo_out[4]"
+  uo[6]: "Connected to ena"
   uo[7]: "SPI Shift Data Out sdo"
 
   # Bidirectional pins

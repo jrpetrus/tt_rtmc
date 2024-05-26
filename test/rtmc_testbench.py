@@ -11,19 +11,25 @@ from cocotbext import spi
 import rtmc_common as rtmc_com
 
 class Testbench:
-    def __init__(self, dut, name="tb"):
+    def __init__(self, dut, name="tb", spi_mult=2, spi_frame_spacing=None):
         self.dut = dut
         self.log = logging.getLogger(f"cocotb.{name}")
+
+        spi_clk_period_ns = rtmc_com.SYS_CLK_PERIOD_NS * spi_mult
+        spi_clk_freq_hz =  1e9 / spi_clk_period_ns
+
+        if spi_frame_spacing is None:
+            spi_frame_spacing = spi_clk_period_ns
 
         # SPI config.
         spi_config = spi.SpiConfig(
             word_width = 8,
-            sclk_freq  = rtmc_com.SPI_CLK_FREQ_HZ,
+            sclk_freq  = spi_clk_freq_hz,
             cpol       = False,
             cpha       = False,
             msb_first  = True,
             data_output_idle = 1,
-            frame_spacing_ns = rtmc_com.SPI_CLK_PERIOD_NS,
+            frame_spacing_ns = spi_frame_spacing,
             ignore_rx_value = None,
             cs_active_low = True
         )
@@ -152,7 +158,7 @@ class Testbench:
         return (val >> bit_offset) & bit_mask
     
 
-async def make_tb(dut):
-    tb = Testbench(dut)
+async def make_tb(dut, **kwargs):
+    tb = Testbench(dut, **kwargs)
     await tb.reset()
     return tb

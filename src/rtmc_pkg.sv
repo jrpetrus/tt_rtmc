@@ -13,5 +13,4 @@ package rtmc_pkg;
 
     // Motor state table.
     parameter MC_W = 8;
-    parameter MC_DEPTH = 16;
 endpackage

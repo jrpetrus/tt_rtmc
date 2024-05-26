@@ -15,9 +15,8 @@ module tt_um_rtmc_top_jrpetrus (
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
 );
-    assign uio_out[7:4] = '0;
-    assign uio_oe[7:4] = '0;
-    assign uo_out[6:4] = '0;
+    // Tie-off and prevent lint warnings.
+    assign uo_out[6:4] = {ena, ui_in[4], ^uio_in};
 
     rtmc_core core(
         .sck(ui_in[5]),
@@ -26,8 +25,8 @@ module tt_um_rtmc_top_jrpetrus (
         .sdo(uo_out[7]),
         .gpi({ui_in[3:0]}),
         .gpo(uo_out[3:0]),
-        .mc(uio_out[3:0]),
-        .mc_oe(uio_oe[3:0]),
+        .mc(uio_out),
+        .mc_oe(uio_oe),
         .*
     );
 

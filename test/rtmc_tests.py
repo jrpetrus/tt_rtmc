@@ -4,14 +4,15 @@
 import cocotb
 import random
 
+import cocotb.regression
+
 import rtmc_common as rtmc_com
 import rtmc_testbench as rtmc_tb
 
 
-@cocotb.test()
-async def test_registers(dut):
+async def test_registers(dut, **kwargs):
     """Test register write and read."""
-    tb = await rtmc_tb.make_tb(dut)
+    tb = await rtmc_tb.make_tb(dut, **kwargs)
     tb.log.info("Starting test.")
 
     startAddr = rtmc_com.STEP_TABLE_OFFSET
@@ -56,3 +57,9 @@ async def test_registers(dut):
     tb.log.info(tableStr)
 
     tb.log.info("Test complete.")
+
+
+regs_tf = cocotb.regression.TestFactory(test_function=test_registers)
+regs_tf.add_option("spi_mult", [2, 4, 8])
+regs_tf.add_option("spi_frame_spacing", [None, 3, 7])
+regs_tf.generate_tests()
