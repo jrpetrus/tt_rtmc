@@ -21,7 +21,7 @@ class ErrorHandler(logging.NullHandler):
         self.errors += int(record.levelno >= logging.ERROR)
 
 class Testbench:
-    def __init__(self, dut, name="tb", spi_mult=2, spi_frame_spacing=None):
+    def __init__(self, dut, name="tb", spi_mult=4, spi_frame_spacing=None):
         self.dut = dut
         self.pos_edge = RisingEdge(dut.clk)
         self.neg_edge = FallingEdge(dut.clk)

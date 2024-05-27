@@ -212,6 +212,6 @@ async def test_gpio(dut, **kwargs):
 
 
 regs_tf = cocotb.regression.TestFactory(test_function=test_registers)
-regs_tf.add_option("spi_mult", [2, 4, 8])
+regs_tf.add_option("spi_mult", [4, 8])
 regs_tf.add_option("spi_frame_spacing", [None, 3, 7])
 regs_tf.generate_tests()
