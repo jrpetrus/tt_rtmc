@@ -28,10 +28,10 @@ pinout:
   ui[1]: "General Purpose Input gpi[1]"
   ui[2]: "General Purpose Input gpi[2]"
   ui[3]: "General Purpose Input gpi[3]"
-  ui[4]: "Connected to uo_out[5]"
-  ui[5]: "SPI Clock sck"
-  ui[6]: "SPI Chip Select cs_n"
-  ui[7]: "SPI Shift Data In sdi"
+  ui[4]: "SPI0.cs"
+  ui[5]: "SPI0.sck"
+  ui[6]: "SPI0.tx"
+  ui[7]: "Connected to uo[6]"
 
   # Outputs
   uo[0]: "General Purpose Output gpo[0]"
@@ -39,9 +39,9 @@ pinout:
   uo[2]: "General Purpose Output gpo[2]"
   uo[3]: "General Purpose Output gpo[3]"
   uo[4]: "Connected to ^uio_in"
-  uo[5]: "Connected to uo_out[4]"
+  uo[5]: "Connected to ui[7]"
   uo[6]: "Connected to ena"
-  uo[7]: "SPI Shift Data Out sdo"
+  uo[7]: "SPI0.rx"
 
   # Bidirectional pins
   uio[0]: "Motor Control mc[0]"
