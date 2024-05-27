@@ -1,41 +1,32 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
 
-# Tiny Tapeout Verilog Project Template
+# Tiny Tapeout: Real Time Motor Controller (RTMC)
 
-- [Read the documentation for project](docs/info.md)
+A SPI-programmable state machine to control a stepper motor with precise duration between steps.
 
-## What is Tiny Tapeout?
+[Read the documentation for project](docs/info.md)
 
-Tiny Tapeout is an educational project that aims to make it easier and cheaper than ever to get your digital and analog designs manufactured on a real chip.
+## Why!?
 
-To learn more and get started, visit https://tinytapeout.com.
+Back in 2020, I got into astrophotography and quickly learned that long exposure photos of the night sky create star trails
+that "smear" across your sensor due to the rotation of the Earth. This can be compensated with a simple machine sometimes known
+as a Barn Door Star Tracker.
 
-## Set up your Verilog project
+I followed this excellent guide by Nick Touran to build my own. Not having an Arduino handy, I instead built mine with a Raspberry PI 1.
 
-1. Add your Verilog files to the `src` folder.
-2. Edit the [info.yaml](info.yaml) and update information about your project, paying special attention to the `source_files` and `top_module` properties. If you are upgrading an existing Tiny Tapeout project, check out our [online info.yaml migration tool](https://tinytapeout.github.io/tt-yaml-upgrade-tool/).
-3. Edit [docs/info.md](docs/info.md) and add a description of your project.
-4. Adapt the testbench to your design. See [test/README.md](test/README.md) for more information.
+[Nick Touran's Barn Door Star Tracker](https://partofthething.com/thoughts/making-a-cheap-and-simple-barn-door-star-tracker-with-software-tangent-correction-for-astrophotography/)
 
-The GitHub action will automatically build the ASIC files using [OpenLane](https://www.zerotoasiccourse.com/terminology/openlane/).
+What irked me at the time was that the Raspberry Pi runs Linux, and Linux is not a real-time operating system. I got pretty good results
+with some questionable calibration but always questioned the accuracy of the sleep cycles between steps. Certainly, a microcontroller
+running bare-metal C would do a fine job of this. However, I'm a chip designer, I like precision, and this can fit in a 1x2 TinyTapeout tile.
 
-## Enable GitHub actions to build the results page
+## Future Work
 
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
+I plan to build a full star tracker using this design and the TinyTapeout demo board. For now, you'll have to settle for some photos and a
+video of my old one.
 
-## Resources
+[Star Tracker at night (1)](docs/star_tracker_1.jpeg)
 
-- [FAQ](https://tinytapeout.com/faq/)
-- [Digital design lessons](https://tinytapeout.com/digital_design/)
-- [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
-- [Join the community](https://tinytapeout.com/discord)
-- [Build your design locally](https://docs.google.com/document/d/1aUUZ1jthRpg4QURIIyzlOaPWlmQzr-jBn3wZipVUPt4)
+[Star Tracker at night (2)](docs/star_tracker_1.jpeg)
 
-## What next?
-
-- [Submit your design to the next shuttle](https://app.tinytapeout.com/).
-- Edit [this README](README.md) and explain your design, how it works, and how to test it.
-- Share your project on your social network of choice:
-  - LinkedIn [#tinytapeout](https://www.linkedin.com/search/results/content/?keywords=%23tinytapeout) [@TinyTapeout](https://www.linkedin.com/company/100708654/)
-  - Mastodon [#tinytapeout](https://chaos.social/tags/tinytapeout) [@matthewvenn](https://chaos.social/@matthewvenn)
-  - X (formerly Twitter) [#tinytapeout](https://twitter.com/hashtag/tinytapeout) [@matthewvenn](https://twitter.com/matthewvenn)
+[The landscape moves but the stars do not!](docs/star_tracker_demo.mp4)

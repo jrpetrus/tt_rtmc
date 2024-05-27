@@ -5,19 +5,23 @@
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v
+PROJECT_SOURCES = tt_um_rtmc_top_jrpetrus.sv rtmc_spi_rxtx.sv rtmc_spi.sv rtmc_core.sv rtmc_ctrl.sv
 
 ifneq ($(GATES),yes)
 
 # RTL simulation:
-SIM_BUILD				= sim_build/rtl
+SIM_BUILD			= sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
 COMPILE_ARGS 		+= -I$(SRC_DIR)
+
+ifeq ($(SIM),verilator)
+COMPILE_ARGS += --trace
+endif
 
 else
 
 # Gate level simulation:
-SIM_BUILD				= sim_build/gl
+SIM_BUILD		 = sim_build/gl
 COMPILE_ARGS    += -DGL_TEST
 COMPILE_ARGS    += -DFUNCTIONAL
 COMPILE_ARGS    += -DUSE_POWER_PINS
@@ -28,15 +32,17 @@ VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_f
 
 # this gets copied in by the GDS action workflow
 VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
-
 endif
 
 # Include the testbench sources:
-VERILOG_SOURCES += $(PWD)/tb.v 
-TOPLEVEL = tb
+VERILOG_SOURCES += $(SRC_DIR)/rtmc_pkg.sv
+VERILOG_SOURCES += $(SRC_DIR)/rtmc_interfaces.sv
+VERILOG_SOURCES += $(PWD)/rtmc_tb.sv
+
+TOPLEVEL = rtmc_tb
 
 # MODULE is the basename of the Python test file
-MODULE = test
+MODULE = rtmc_tests
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
