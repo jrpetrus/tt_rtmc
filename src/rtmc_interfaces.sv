@@ -28,8 +28,8 @@ interface spi_if();
 endinterface
 
 interface gpio_if();
-    logic [13:0] gpi;
-    logic [6:0] gpo;
+    logic [3:0] gpi;
+    logic [3:0] gpo;
 
     modport controller(
         input gpi,

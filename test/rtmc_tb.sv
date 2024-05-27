@@ -22,18 +22,21 @@ module rtmc_tb();
   gpio_if gpio();
   motor_if motor();
 
+  logic [2:0] uo_dont_care;
+  logic ena;
+
   tt_um_rtmc_top_jrpetrus dut(
       // Include power ports for the Gate Level test:
 `ifdef GL_TEST
       .VPWR(1'b1),
       .VGND(1'b0),
 `endif
-      .ui_in({spi.mosi, spi.cs, spi.sclk, gpio.gpi[4:0]}),
-      .uo_out({spi.miso, gpio.gpo}),
-      .uio_in(gpio.gpi[12:5]),
+      .ui_in({spi.mosi, spi.cs, spi.sclk, 1'b0, gpio.gpi}),
+      .uo_out({spi.miso, uo_dont_care, gpio.gpo}),
+      .uio_in(8'd0),
       .uio_out(motor.mc),
       .uio_oe(motor.mc_oe),
-      .ena(gpio.gpi[13]),
+      .ena(ena),
       .clk(clk),
       .rst_n(rst_n)
   );

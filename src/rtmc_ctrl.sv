@@ -110,7 +110,7 @@ module rtmc_ctrl #(
             else
                 reg_ack <= '0;
 
-            if(reg_wr) begin
+            if(reg_wr & reg_ack) begin
                 if(reg_addr[TABLE_ADDR_BIT]) begin
                     step_table[table_address] <= reg_wdat[MC_W-1:0];
                 end
@@ -235,6 +235,7 @@ module rtmc_ctrl #(
     // lesser value during RUN.
     // Only active during RUN state.
     // Only clearable when not in RUN state.
+    // Program to desired_delay_cycles - 1.
     always_comb begin
         if(state == RUN) begin
             step_delay_hit = ~|delay_count;
@@ -255,7 +256,7 @@ module rtmc_ctrl #(
         next_step_count = step_count;
         if(step_count_clr)
             next_step_count = '0;
-        else if(step_delay_hit) 
+        else if(do_step || step_delay_hit) 
             next_step_count =
                 step_count + {{$bits(step_count)-$bits(step_size){step_size[$left(step_size)]}}, step_size};
     end
@@ -271,14 +272,23 @@ module rtmc_ctrl #(
         next_table_idx = table_idx;
     
         if(do_step || step_delay_hit) begin
-            if(table_idx_p_step_size_ltz)
-                // table_idx can't be negative.
-                next_table_idx = table_last;
-            else if(table_idx_p_step_size >= {1'b0, table_last})
+            // step_size < 0
+            if(step_size[$left(step_size)]) begin
+                if(table_idx_p_step_size_ltz)
+                    // table_idx can't be negative.
+                    next_table_idx = table_last;
+                else
+                    next_table_idx = table_idx_p_step_size[$left(next_table_idx):0];
+            end
+
+            // step_size is >= 0
+            else begin
                 // table_idx can't exceed table_last.
-                next_table_idx = '0;
-            else
-                next_table_idx = table_idx_p_step_size[$left(next_table_idx):0];
+                if(table_idx == table_last)
+                    next_table_idx = '0;
+                else
+                    next_table_idx = table_idx_p_step_size[$left(next_table_idx):0];
+            end
         end
     end
 

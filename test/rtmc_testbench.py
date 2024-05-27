@@ -2,18 +2,33 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import cocotb
+import ctypes
 import logging
 
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, Timer
+from cocotb.triggers import ClockCycles, Timer, RisingEdge, FallingEdge
 from cocotbext import spi
 
 import rtmc_common as rtmc_com
 
+
+class ErrorHandler(logging.NullHandler):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.errors = 0
+        
+    def handle(self, record: logging.LogRecord):
+        self.errors += int(record.levelno >= logging.ERROR)
+
 class Testbench:
     def __init__(self, dut, name="tb", spi_mult=2, spi_frame_spacing=None):
         self.dut = dut
+        self.pos_edge = RisingEdge(dut.clk)
+        self.neg_edge = FallingEdge(dut.clk)
+        
         self.log = logging.getLogger(f"cocotb.{name}")
+        self.errorHandler = ErrorHandler()
+        self.log.addHandler(self.errorHandler)
 
         spi_clk_period_ns = rtmc_com.SYS_CLK_PERIOD_NS * spi_mult
         spi_clk_freq_hz =  1e9 / spi_clk_period_ns
@@ -24,10 +39,10 @@ class Testbench:
         # SPI config.
         spi_config = spi.SpiConfig(
             word_width = 8,
-            sclk_freq  = spi_clk_freq_hz,
-            cpol       = False,
-            cpha       = False,
-            msb_first  = True,
+            sclk_freq = spi_clk_freq_hz,
+            cpol = False,
+            cpha = False,
+            msb_first = True,
             data_output_idle = 1,
             frame_spacing_ns = spi_frame_spacing,
             ignore_rx_value = None,
@@ -51,7 +66,7 @@ class Testbench:
         # Initialize inputs.
         self.dut.gpio.gpi.value = 0
         await Timer(rtmc_com.SYS_CLK_PERIOD_NS // 2, "ns")
-        Testbench.set_packed_bit(self.dut.gpio.gpi, rtmc_com.ENA_BIT, 1)
+        self.dut.ena.value = 1
 
         # Reset.
         self.dut.rst_n.value = 0
@@ -157,6 +172,63 @@ class Testbench:
         val = await self.read(name)
         return (val >> bit_offset) & bit_mask
     
+    async def write_counter(self, name: str, val: int) -> None:
+        """
+        Write or clear a 32-bit counter.
+        step_delay = rd/wr
+        step_count = rd, wr-to-clear
+        delay_count = rd, wr-to-clear
+        """
+        cnt0 = val >> rtmc_com.DATA_W
+        cnt1 = val & rtmc_com.DATA_MASK
+        await self.write(name + "0", cnt0)
+        await self.write(name + "1", cnt1)
+    
+    async def read_counter(self, name: str, signed=False):
+        """Read a 32-bit counter."""        
+        counter = await self.read(name + "0")
+        counter <<= rtmc_com.DATA_W
+        counter += await self.read(name + "1")
+        if signed:
+            return ctypes.c_int32(counter).value
+        return counter
+    
+    async def write_step_table(
+        self,
+        step_table: list[int],
+    ) -> None:
+        
+        if len(step_table) > rtmc_com.TABLE_DEPTH:
+            raise RuntimeError("Step table depth exceeded.")
+
+        startAddr = rtmc_com.STEP_TABLE_OFFSET
+        for i, val in enumerate(step_table):
+            await self.write(startAddr + i, val)
+
+    def get_mc_out(self) -> int:
+        """Get current motor state and consider output enable."""
+        mc_oe = int(self.dut.motor.mc_oe.value)
+        mc = int(self.dut.motor.mc.value)
+        mc &= mc_oe
+        return mc
+    
+    async def step(self, n=1, pos_edge=True) -> None:
+        """Wait n clock steps."""
+        edge = self.pos_edge if pos_edge else self.neg_edge
+        for _ in range(n):
+            await edge
+
+    def set_gpi(self, val: int) -> None:
+        self.dut.gpio.gpi.value = val
+
+    def get_gpo(self) -> int:
+        return int(self.dut.gpio.gpo.value)
+    
+    async def finish(self):
+        await self.step(100)
+        if self.errorHandler.errors:
+            raise cocotb.result.TestFailure(f"Test failed, error count = {self.errorHandler.errors}.")
+
 
 async def make_tb(dut, **kwargs):
     tb = Testbench(dut, **kwargs)

@@ -10,7 +10,6 @@ ADDR_MASK = (1 << ADDR_W) - 1
 DATA_MASK = (1 << DATA_W) - 1
 
 SYS_CLK_PERIOD_NS = 20
-ENA_BIT = 13
 
 # Motor controller
 # Each motor state is programmed into the table.
@@ -95,4 +94,14 @@ def get_reg_str(name: str, val: int):
             fieldVal = (val >> bit_offset) & bit_mask
             regStr += f"\n\t{field} = {fieldVal}"
     return regStr
+
+
+def get_next_step_idx(step_idx: int, step_size: int, table_last: int):
+    """Model step increments."""
+    next_step_idx = step_idx + step_size
+    if next_step_idx > table_last:
+        return 0
+    elif next_step_idx < 0:
+        return table_last
+    return next_step_idx
 
