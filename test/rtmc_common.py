@@ -63,7 +63,6 @@ BIT_MAP = {
     "step_stat": {
         "table_idx": (0, 4),
         "state": (4, 4),
-        "limit_hit": (8, 1),
     },
 }
 

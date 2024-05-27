@@ -2,7 +2,7 @@
 project:
   title:        "Real Time Motor Controller"
   author:       "J. R. Petrus"
-  discord:      ""  # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
+  discord:      "jrpetrus"
   description:  "Controls a stepper motor with precise timing between steps."
   language:     "SystemVerilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     50000000        # Clock frequency in Hz (or 0 if not applicable)
